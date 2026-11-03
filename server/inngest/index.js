@@ -325,12 +325,7 @@ const sendTaskAssignmentEmail = inngest.createFunction(
 
     const dueDate = new Date(task.due_date);
     const now = new Date();
-    const isDueToday =
-      dueDate.getFullYear() === now.getFullYear() &&
-      dueDate.getMonth() === now.getMonth() &&
-      dueDate.getDate() === now.getDate();
-
-    if (dueDate <= now || isDueToday) {
+    if (dueDate <= now) {
       return;
     }
 
