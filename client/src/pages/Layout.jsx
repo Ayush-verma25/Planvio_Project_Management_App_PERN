@@ -1,23 +1,49 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import { Outlet } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { loadTheme } from "../features/themeSlice";
 import { Loader2Icon } from "lucide-react";
-import { useUser, SignIn } from "@clerk/react";
+import { useUser, SignIn, useAuth, CreateOrganization } from "@clerk/react";
+import {
+  fetchWorkspaces,
+  setWorkspaceFetchError,
+  startWorkspaceFetch,
+} from "../features/workspaceSlice";
 
 const Layout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const { loading } = useSelector((state) => state.workspace);
+  const { loading, workspaces, error } = useSelector(
+    (state) => state.workspace,
+  );
   const dispatch = useDispatch();
 
   const { user, isLoaded } = useUser();
+  const { getToken } = useAuth();
+
+  const loadWorkspaces = useCallback(async () => {
+    dispatch(startWorkspaceFetch());
+
+    try {
+      const token = await getToken();
+      dispatch(fetchWorkspaces(token));
+    } catch (error) {
+      dispatch(setWorkspaceFetchError(error.message));
+    }
+  }, [dispatch, getToken]);
 
   // Initial load of theme
   useEffect(() => {
     dispatch(loadTheme());
-  }, []);
+  }, [dispatch]);
+
+  // Initial Loading of Workspaces
+  useEffect(() => {
+    if (isLoaded && user && workspaces.length === 0) {
+      loadWorkspaces();
+    }
+  }, [isLoaded, loadWorkspaces, user, workspaces.length]);
 
   if (!user) {
     return (
@@ -33,6 +59,32 @@ const Layout = () => {
         <Loader2Icon className="size-7 text-blue-500 animate-spin" />
       </div>
     );
+
+  if (error) {
+    return (
+      <div
+        className="flex min-h-screen flex-col items-center justify-center gap-4"
+        role="alert"
+      >
+        <p>Unable to load workspaces: {error}</p>
+        <button
+          className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+          onClick={loadWorkspaces}
+          type="button"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  if (user && workspaces.length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <CreateOrganization />
+      </div>
+    );
+  }
 
   return (
     <div className="flex bg-white dark:bg-zinc-950 text-gray-900 dark:text-slate-100">
