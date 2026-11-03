@@ -75,6 +75,7 @@ const workspaceSlice = createSlice({
         null;
     },
     setCurrentWorkspace: (state, action) => {
+      localStorage.setItem("currentWorkspaceId", action.payload);
       state.currentWorkspace =
         state.workspaces.find((workspace) => workspace.id === action.payload) ??
         null;
