@@ -260,10 +260,11 @@ const escapeHtml = (value) =>
     return entities[character];
   });
 
-const createTaskEmail = (task, origin, isReminder = false) => {
+const createTaskEmail = (task, isReminder = false) => {
   let taskUrl = "";
-  if (origin) {
-    const url = new URL("/taskDetails", origin);
+  const clientUrl = process.env.CLIENT_URL?.split(",")[0]?.trim();
+  if (clientUrl) {
+    const url = new URL("/taskDetails", clientUrl);
     url.searchParams.set("projectId", task.projectId);
     url.searchParams.set("taskId", task.id);
     taskUrl = url.href;
@@ -302,7 +303,7 @@ const sendTaskAssignmentEmail = inngest.createFunction(
     triggers: [{ event: "app/task.assigned" }],
   },
   async ({ event, step }) => {
-    const { taskId, origin } = event.data ?? {};
+    const { taskId } = event.data ?? {};
     if (!taskId) {
       throw new Error("Task assignment event is missing its task ID.");
     }
@@ -319,7 +320,7 @@ const sendTaskAssignmentEmail = inngest.createFunction(
     await step.run("send-task-assignment-mail", async () =>
       sendEmail({
         to: task.assignee.email,
-        ...createTaskEmail(task, origin),
+        ...createTaskEmail(task),
       }),
     );
 
@@ -347,7 +348,7 @@ const sendTaskAssignmentEmail = inngest.createFunction(
       await step.run("send-task-reminder-mail", async () =>
         sendEmail({
           to: reminderTask.assignee.email,
-          ...createTaskEmail(reminderTask, origin, true),
+          ...createTaskEmail(reminderTask, true),
         }),
       );
     }

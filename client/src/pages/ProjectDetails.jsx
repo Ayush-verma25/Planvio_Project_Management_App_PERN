@@ -1,12 +1,13 @@
-import { useState, useEffect } from "react";
+import { lazy, Suspense, useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeftIcon, PlusIcon, SettingsIcon, BarChart3Icon, CalendarIcon, FileStackIcon, ZapIcon } from "lucide-react";
-import ProjectAnalytics from "../components/ProjectAnalytics";
 import ProjectSettings from "../components/ProjectSettings";
 import CreateTaskDialog from "../components/CreateTaskDialog";
 import ProjectCalendar from "../components/ProjectCalendar";
 import ProjectTasks from "../components/ProjectTasks";
+
+const ProjectAnalytics = lazy(() => import("../components/ProjectAnalytics"));
 
 export default function ProjectDetail() {
 
@@ -27,11 +28,9 @@ export default function ProjectDetail() {
     }, [tab]);
 
     useEffect(() => {
-        if (projects && projects.length > 0) {
-            const proj = projects.find((p) => p.id === id);
-            setProject(proj);
-            setTasks(proj?.tasks || []);
-        }
+        const proj = projects.find((p) => p.id === id) ?? null;
+        setProject(proj);
+        setTasks(proj?.tasks ?? []);
     }, [id, projects]);
 
     const statusColors = {
@@ -116,7 +115,9 @@ export default function ProjectDetail() {
                     )}
                     {activeTab === "analytics" && (
                         <div className=" dark:bg-zinc-900/40 rounded max-w-6xl">
-                            <ProjectAnalytics tasks={tasks} project={project} />
+                            <Suspense fallback={<p className="py-6 text-sm text-zinc-500">Loading analytics...</p>}>
+                                <ProjectAnalytics tasks={tasks} project={project} />
+                            </Suspense>
                         </div>
                     )}
                     {activeTab === "calendar" && (

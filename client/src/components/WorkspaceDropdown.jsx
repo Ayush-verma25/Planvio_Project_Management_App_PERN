@@ -44,7 +44,7 @@ function WorkspaceDropdown() {
     if (currentWorkspace && isLoaded) {
       setActive({ organization: currentWorkspace.id });
     }
-  }, [currentWorkspace, isLoaded]);
+  }, [currentWorkspace, isLoaded, setActive]);
 
   return (
     <div className="relative m-4" ref={dropdownRef}>
@@ -76,7 +76,7 @@ function WorkspaceDropdown() {
             <p className="text-xs text-gray-500 dark:text-zinc-400 uppercase tracking-wider mb-2 px-2">
               Workspaces
             </p>
-            {userMemberships.data.map(({ organization }) => (
+            {(userMemberships?.data ?? []).map(({ organization }) => (
               <div
                 key={organization.id}
                 onClick={() => onSelectWorkspace(organization.id)}

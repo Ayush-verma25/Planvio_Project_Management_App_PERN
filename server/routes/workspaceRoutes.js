@@ -7,6 +7,6 @@ import {
 const workspaceRoutes = Router();
 
 workspaceRoutes.get("/", getUserWorkspaces);
-workspaceRoutes.post("/add-menber", addMembers);
+workspaceRoutes.post("/add-member", addMembers);
 
 export default workspaceRoutes;
