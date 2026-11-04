@@ -27,7 +27,7 @@ export const getUserWorkspaces = async (req, res) => {
     res.status(200).json(workspaces);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: error.code || error.message });
+    res.status(500).json({ message: "Internal server error." });
   }
 };
 
@@ -35,54 +35,51 @@ export const getUserWorkspaces = async (req, res) => {
 export const addMembers = async (req, res) => {
   try {
     const { userId } = await req.auth();
-    const { email, workspaceId, role, message } = req.body;
+    const { email, workspaceId, role, message } = req.body ?? {};
 
-    // check if the user is the owner of the workspace
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    if (!workspaceId || !role) {
-      return res.status(400).json({ message: "Missing required perameters" });
+    if (
+      typeof email !== "string" ||
+      !email.trim() ||
+      typeof workspaceId !== "string" ||
+      !workspaceId ||
+      !role
+    ) {
+      return res.status(400).json({ message: "Email, workspace, and role are required." });
     }
 
     if (!["ADMIN", "MEMBER"].includes(role)) {
-      return res.status(400).json({ message: "Invalid role" });
+      return res.status(400).json({ message: "Invalid role." });
     }
 
-    // fetch the workspace
+    if (message !== undefined && typeof message !== "string") {
+      return res.status(400).json({ message: "Message must be a string." });
+    }
+
     const workspace = await prisma.workspace.findUnique({
       where: { id: workspaceId },
-      include: { members: { members: true } },
+      include: { members: true },
     });
 
     if (!workspace) {
-      return res.status(404).json({ message: "Workspace not found" });
+      return res.status(404).json({ message: "Workspace not found." });
     }
 
-    // check creator has admin role
-    if (
-      !workspace.members.find(
-        (member) => member.userId === userId && member.role === "ADMIN",
-      )
-    ) {
-      return res
-        .status(401)
-        .json({ message: "You do not have Admin priviledges" });
+    if (!workspace.members.some((member) => member.userId === userId && member.role === "ADMIN")) {
+      return res.status(403).json({ message: "Workspace admin privileges are required." });
     }
-    // Check if user ia already a member of the workspace
-    const existingMember = workspace.member.find(
-      (member) => member.userId === user.id,
-    );
+
+    const user = await prisma.user.findUnique({
+      where: { email: email.trim() },
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    const existingMember = workspace.members.find((member) => member.userId === user.id);
 
     if (existingMember) {
-      return res
-        .status(400)
-        .json({ message: "User is already a member of the workspace" });
+      return res.status(409).json({ message: "User is already a member of the workspace." });
     }
 
     const member = await prisma.workspaceMember.create({
@@ -90,13 +87,13 @@ export const addMembers = async (req, res) => {
         userId: user.id,
         workspaceId,
         role,
-        message,
+        message: message ?? "",
       },
     });
 
-    res.status(200).json({ message: "Member added successfully", member });
+    return res.status(201).json({ message: "Member added successfully.", member });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: error.code || error.message });
+    return res.status(500).json({ message: "Internal server error." });
   }
 };

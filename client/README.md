@@ -40,27 +40,18 @@
 
 ## 🚀 Getting Started <a name="-getting-started"></a>
 
-First, install the dependencies. We recommend using `npm` for this project.
+For full-stack setup and production deployment, see the repository
+[README](../README.md). To run the client locally, use a terminal in this
+directory:
 
-```bash
+```powershell
 npm install
-```
-
-Then, run the development server:
-
-```bash
+Copy-Item .env.example .env.local
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:5173](http://localhost:5173) with your browser to see the result.
-
-You can start editing the page by modifying `src/App.jsx`. The page auto-updates as you edit the file.
+Set `VITE_CLERK_PUBLISHABLE_KEY` and `VITE_BASE_URL` in `.env.local` before
+using the application.
 
 ---
 

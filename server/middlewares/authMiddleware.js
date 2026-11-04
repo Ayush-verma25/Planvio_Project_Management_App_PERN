@@ -9,6 +9,6 @@ export const protect = async (req, res, next) => {
     return next();
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: error.code || error.message });
+    return res.status(500).json({ message: "Unable to verify your session." });
   }
 };

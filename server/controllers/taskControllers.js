@@ -91,7 +91,7 @@ export const createTask = async (req, res) => {
 
     await inngest.send({
       name: "app/task.assigned",
-      data: { taskId: task.id, origin: req.get("origin") },
+      data: { taskId: task.id },
     });
 
     return res
@@ -99,7 +99,7 @@ export const createTask = async (req, res) => {
       .json({ task, message: "Task created successfully." });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: error.code || error.message });
+    return res.status(500).json({ message: "Internal server error." });
   }
 };
 
@@ -129,15 +129,8 @@ export const updateTask = async (req, res) => {
         .json({ message: "Only the project lead can update tasks." });
     }
 
-    const {
-      title,
-      description,
-      type,
-      status,
-      priority,
-      assigneeId,
-      due_date,
-    } = req.body ?? {};
+    const { title, description, type, status, priority, assigneeId, due_date } =
+      req.body ?? {};
     if (title !== undefined && (typeof title !== "string" || !title.trim())) {
       return res.status(400).json({ message: "Task title cannot be empty." });
     }
@@ -181,7 +174,7 @@ export const updateTask = async (req, res) => {
     if (assigneeId && assigneeId !== task.assigneeId) {
       await inngest.send({
         name: "app/task.assigned",
-        data: { taskId: updatedTask.id, origin: req.get("origin") },
+        data: { taskId: updatedTask.id },
       });
     }
 
@@ -190,7 +183,7 @@ export const updateTask = async (req, res) => {
       .json({ task: updatedTask, message: "Task updated successfully." });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: error.code || error.message });
+    return res.status(500).json({ message: "Internal server error." });
   }
 };
 
@@ -217,7 +210,9 @@ export const deleteTask = async (req, res) => {
     });
 
     if (tasks.length !== uniqueTaskIds.length) {
-      return res.status(404).json({ message: "One or more tasks were not found." });
+      return res
+        .status(404)
+        .json({ message: "One or more tasks were not found." });
     }
 
     const projectIds = [...new Set(tasks.map((task) => task.projectId))];
@@ -242,6 +237,6 @@ export const deleteTask = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: error.code || error.message });
+    return res.status(500).json({ message: "Internal server error." });
   }
 };

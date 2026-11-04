@@ -174,7 +174,7 @@ export const createProject = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: error.code || error.message });
+    return res.status(500).json({ message: "Internal server error." });
   }
 };
 
@@ -333,7 +333,7 @@ export const updateProject = async (req, res) => {
       .json({ message: "Project updated successfully", project: updatedProject });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: error.code || error.message });
+    return res.status(500).json({ message: "Internal server error." });
   }
 };
 
@@ -389,6 +389,6 @@ export const addMembersToProject = async (req, res) => {
     return res.status(200).json({ member, message: "Member added successfully." });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: error.code || error.message });
+    return res.status(500).json({ message: "Internal server error." });
   }
 };
